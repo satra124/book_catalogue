@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 
-
 def connect():
     client = MongoClient(port=27017)
     db = client.bookdb
@@ -16,6 +15,12 @@ def insert(title, year, author, isbn):
         "ISBN": isbn
     }
     db.book.insert_one(record)
+
+def get_id (title="", year="", author="", isbn=""):
+    db = connect()
+    my_collection = db.book.find({"author": author, "book_title": title, "published_on": year, "ISBN": isbn})
+    for i in my_collection:
+        return i
 
 
 def view():
@@ -70,16 +75,19 @@ def search(title="", year="", author="", isbn=""):
         result = db.book.find({})
 
     for books in result:
-        book_list.append('{0} {1} {2} {3}'.format(
+        book_list.append('{0}, {1}, {2}, {3}'.format(
             books['book_title'], books['published_on'], books['author'], books['ISBN']))
-    return book_list
+    
+    final_list = list()
+    for i in book_list:
+        final_list.append(tuple(i.split(', '))) 
+    return final_list     
 
-def delete(title="", year="", author="", isbn=""):
+def delete(id=""):
     db=connect()
-    db.book.find({"book_title": title,
-        "published_on": year,
-        "author": author,
-        "ISBN": isbn}).getObjectId("_id")
-    print(id)
+    db.book.delete_one(id)
 
-delete()
+def update(id="",new_title="",new_year="",new_author="",new_isbn=""):
+    db=connect()
+    delete(id)
+    insert(new_title,new_year,new_author,new_isbn)
